@@ -58,7 +58,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Minhas Tarefas',
+          'Minhas Lista de compras',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blue[900],
@@ -85,27 +85,48 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     ),
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     child: ListTile(
-                      leading: Checkbox(
-                        value: task.completed,
-                        onChanged: (_) => _toggleCompleted(task),
-                        activeColor: Colors.green,
-                        checkColor: Colors.black,
+                      leading: GestureDetector(
+                        onTap: () => _toggleCompleted(task),
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color:
+                                  task.completed ? Colors.blue : Colors.white,
+                              width: 2,
+                            ),
+                            color:
+                                task.completed
+                                    ? Colors.blue
+                                    : Colors.transparent,
+                          ),
+                          child:
+                              task.completed
+                                  ? const Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: Colors.black,
+                                  )
+                                  : null,
+                        ),
                       ),
                       title: Text(
                         task.title,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          decoration:
+                          color: task.completed ? Colors.blue : Colors.white,
+                          fontWeight:
                               task.completed
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                          fontSize: task.completed ? 16 : 20,
                         ),
                       ),
                       subtitle: Text(
                         task.description,
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: Colors.white,
                           decoration:
                               task.completed
                                   ? TextDecoration.lineThrough
@@ -113,7 +134,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                         ),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.redAccent),
+                        icon: const Icon(Icons.delete, color: Colors.white),
                         onPressed: () => _deleteTask(task.id!),
                       ),
                       onTap: () => _navigateToForm(task: task),

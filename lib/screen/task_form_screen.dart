@@ -15,6 +15,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _valueController = TextEditingController();
+  final _quantityController = TextEditingController();
+
   final TaskService _taskService = TaskService();
 
   @override
@@ -23,6 +26,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     if (widget.task != null) {
       _titleController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description;
+      _valueController.text = widget.task!.value.toString();
+      _quantityController.text = widget.task!.quantity.toString();
     }
   }
 
@@ -30,6 +35,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
+    _valueController.dispose();
+    _quantityController.dispose();
     super.dispose();
   }
 
@@ -37,15 +44,24 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     if (_formKey.currentState!.validate()) {
       final title = _titleController.text.trim();
       final description = _descriptionController.text.trim();
+      final value = double.tryParse(_valueController.text.trim()) ?? 0.0;
+      final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
 
       if (widget.task == null) {
-        final newTask = Task(title: title, description: description);
+        final newTask = Task(
+          title: title,
+          description: description,
+          value: value,
+          quantity: quantity,
+        );
         await _taskService.addTask(newTask);
       } else {
         final updatedTask = Task(
           id: widget.task!.id,
           title: title,
           description: description,
+          value: value,
+          quantity: quantity,
         );
         await _taskService.updateTask(updatedTask);
       }
@@ -61,7 +77,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isEditing ? 'Editar Tarefa' : 'Nova Tarefa',
+          isEditing ? 'Editar produto' : 'Novo produto',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 22,
@@ -125,6 +141,55 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Informe uma descrição';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _valueController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Preço (opcional)',
+                        labelStyle: const TextStyle(color: Colors.blue),
+                        filled: true,
+                        fillColor: Colors.grey[900],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0,
+                          horizontal: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _quantityController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Quantidade',
+                        labelStyle: const TextStyle(color: Colors.blue),
+                        filled: true,
+                        fillColor: Colors.grey[900],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16.0,
+                          horizontal: 10,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Informe uma quantidade';
+                        }
+                        if (int.tryParse(value.trim()) == null) {
+                          return 'Quantidade inválida';
                         }
                         return null;
                       },

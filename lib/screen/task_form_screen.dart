@@ -70,25 +70,56 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     }
   }
 
+  InputDecoration _buildInputDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white60),
+      filled: true,
+      fillColor: const Color(0xFF1E1E1E),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.task != null;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: Text(
-          isEditing ? 'Editar produto' : 'Novo produto',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: const Color.fromARGB(255, 14, 13, 13),
+        elevation: 1,
         centerTitle: true,
-        backgroundColor: Colors.blue[900],
-        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white70,
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isEditing ? Icons.edit_note_outlined : Icons.add_box_outlined,
+              color: Colors.white70,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isEditing ? 'Editar Produto' : 'Novo Produto',
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
-      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -96,94 +127,46 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
             Expanded(
               child: Form(
                 key: _formKey,
-                child: Column(
+                child: ListView(
                   children: [
                     TextFormField(
                       controller: _titleController,
                       style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Título',
-                        labelStyle: const TextStyle(color: Colors.blue),
-                        filled: true,
-                        fillColor: Colors.grey[900],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 10,
-                        ),
-                      ),
+                      decoration: _buildInputDecoration('Marca do Produto'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Informe um título';
+                          return 'Informe o produto';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     TextFormField(
                       controller: _descriptionController,
                       style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Descrição',
-                        labelStyle: const TextStyle(color: Colors.blue),
-                        filled: true,
-                        fillColor: Colors.grey[900],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 10,
-                        ),
-                      ),
+                      decoration: _buildInputDecoration('Marca'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Informe uma descrição';
+                          return 'Informe a marca do produto';
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     TextFormField(
                       controller: _valueController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Preço (opcional)',
-                        labelStyle: const TextStyle(color: Colors.blue),
-                        filled: true,
-                        fillColor: Colors.grey[900],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 10,
-                        ),
-                      ),
+                      decoration: _buildInputDecoration('Preço (opcional)'),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
                     TextFormField(
                       controller: _quantityController,
                       keyboardType: TextInputType.number,
                       style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Quantidade',
-                        labelStyle: const TextStyle(color: Colors.blue),
-                        filled: true,
-                        fillColor: Colors.grey[900],
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16.0,
-                          horizontal: 10,
-                        ),
-                      ),
+                      decoration: _buildInputDecoration('Quantidade'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Informe uma quantidade';
@@ -198,23 +181,28 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: ElevatedButton(
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
                 onPressed: _saveTask,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  minimumSize: const Size(double.infinity, 50),
+                  backgroundColor: Colors.grey[700],
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Text(
+                icon: Icon(
+                  isEditing
+                      ? Icons.check_circle_outline
+                      : Icons.add_circle_outline,
+                ),
+                label: Text(
                   isEditing ? 'Atualizar' : 'Adicionar',
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),

@@ -64,33 +64,71 @@ class _TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
+  Widget _buildSwipeBackground({required bool isStart}) {
+    return Container(
+      alignment: isStart ? Alignment.centerLeft : Alignment.centerRight,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(
+        isStart ? Icons.edit_outlined : Icons.delete_outline,
+        color: Colors.white70,
+        size: 26,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: const Text(
-          'Minhas Lista de Compras',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.blue[900],
+        backgroundColor: const Color.fromARGB(255, 14, 13, 13),
+        elevation: 1,
         centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.shopping_cart_outlined, color: Colors.white70),
+            SizedBox(width: 8),
+            Text(
+              'Minha Lista de Compras',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
-      backgroundColor: Colors.black,
       body: Column(
         children: [
           Container(
-            width: double.infinity,
-            color: Colors.blue[900],
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            child: Center(
-              child: Text(
-                'Total: R\$ ${_totalValue.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total estimado:',
+                  style: TextStyle(color: Colors.grey, fontSize: 18),
                 ),
-              ),
+                Text(
+                  'R\$ ${_totalValue.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -99,81 +137,140 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     ? const Center(
                       child: Text(
                         'Não existem tarefas no momento',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(color: Colors.white54, fontSize: 16),
                       ),
                     )
                     : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       itemCount: _tasks.length,
                       itemBuilder: (context, index) {
                         final task = _tasks[index];
-                        return Card(
-                          color: Colors.grey[900],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        return Dismissible(
+                          key: Key(task.id.toString()),
+                          background: _buildSwipeBackground(isStart: true),
+                          secondaryBackground: _buildSwipeBackground(
+                            isStart: false,
                           ),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            leading: GestureDetector(
-                              onTap: () => _toggleCompleted(task),
-                              child: Container(
-                                width: 24,
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
+                          confirmDismiss: (direction) async {
+                            if (direction == DismissDirection.startToEnd) {
+                              await _navigateToForm(task: task);
+                              return false;
+                            } else if (direction ==
+                                DismissDirection.endToStart) {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (ctx) => AlertDialog(
+                                      backgroundColor: const Color(0xFF1E1E1E),
+                                      title: const Text(
+                                        'Confirmar exclusão',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      content: const Text(
+                                        'Deseja realmente excluir este item?',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.of(ctx).pop(false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () => Navigator.of(ctx).pop(true),
+                                          child: const Text('Excluir'),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                              return confirm ?? false;
+                            }
+                            return false;
+                          },
+                          onDismissed: (direction) {
+                            if (direction == DismissDirection.endToStart) {
+                              _deleteTask(task.id!);
+                            }
+                          },
+                          child: Card(
+                            color: const Color(0xFF1A1A1A),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            elevation: 2,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              leading: GestureDetector(
+                                onTap: () => _toggleCompleted(task),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color:
+                                          task.completed
+                                              ? Colors.greenAccent
+                                              : Colors.white54,
+                                      width: 2,
+                                    ),
                                     color:
                                         task.completed
-                                            ? Colors.blue
-                                            : Colors.white,
-                                    width: 2,
+                                            ? Colors.greenAccent
+                                            : Colors.transparent,
                                   ),
+                                  child:
+                                      task.completed
+                                          ? const Icon(
+                                            Icons.check,
+                                            size: 16,
+                                            color: Colors.black,
+                                          )
+                                          : null,
+                                ),
+                              ),
+                              title: Text(
+                                task.title,
+                                style: TextStyle(
                                   color:
                                       task.completed
-                                          ? Colors.blue
-                                          : Colors.transparent,
+                                          ? Colors.greenAccent
+                                          : Colors.white,
+                                  fontWeight:
+                                      task.completed
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                  fontSize: 18,
                                 ),
-                                child:
-                                    task.completed
-                                        ? const Icon(
-                                          Icons.check,
-                                          size: 16,
-                                          color: Colors.black,
-                                        )
-                                        : null,
+                              ),
+                              subtitle: Text(
+                                '${task.description}\nR\$ ${task.value.toStringAsFixed(2)}  •  Quantidade: ${task.quantity}',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  height: 1.4,
+                                  decoration:
+                                      task.completed
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                ),
+                              ),
+                              isThreeLine: true,
+                              trailing: const Icon(
+                                Icons.drag_handle,
+                                color: Colors.white24,
                               ),
                             ),
-                            title: Text(
-                              task.title,
-                              style: TextStyle(
-                                color:
-                                    task.completed ? Colors.blue : Colors.white,
-                                fontWeight:
-                                    task.completed
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                fontSize: task.completed ? 16 : 20,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${task.description}\nPreço: R\$ ${task.value.toStringAsFixed(2)}  •  Quantidade: ${task.quantity}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                decoration:
-                                    task.completed
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                              ),
-                            ),
-                            isThreeLine: true,
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                              ),
-                              onPressed: () => _deleteTask(task.id!),
-                            ),
-                            onTap: () => _navigateToForm(task: task),
                           ),
                         );
                       },
@@ -182,7 +279,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.grey[600],
         child: const Icon(Icons.add, color: Colors.white),
         onPressed: () => _navigateToForm(),
       ),

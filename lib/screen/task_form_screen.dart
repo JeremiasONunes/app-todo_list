@@ -132,7 +132,7 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                     TextFormField(
                       controller: _titleController,
                       style: const TextStyle(color: Colors.white),
-                      decoration: _buildInputDecoration('Marca do Produto'),
+                      decoration: _buildInputDecoration('Nome do Produto'),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'Informe o produto';

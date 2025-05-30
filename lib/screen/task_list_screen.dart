@@ -4,9 +4,7 @@ import '../services/task_service.dart';
 import 'task_form_screen.dart';
 
 class TaskListScreen extends StatefulWidget {
-  final List<Task> initialTasks;
-
-  const TaskListScreen({super.key, required this.initialTasks});
+  const TaskListScreen({super.key});
 
   @override
   State<TaskListScreen> createState() => _TaskListScreenState();
@@ -14,14 +12,22 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen> {
   final TaskService _taskService = TaskService();
-  late List<Task> _tasks;
+  List<Task> _tasks = [];
   double _totalValue = 0.0;
+  bool _showTip = true; // controla se a dica aparece ou não
 
   @override
   void initState() {
     super.initState();
-    _tasks = widget.initialTasks;
-    _updateTotalValue();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    final tasks = await _taskService.getTasks();
+    setState(() {
+      _tasks = tasks;
+      _updateTotalValue();
+    });
   }
 
   void _updateTotalValue() {
@@ -38,30 +44,18 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
 
     if (result == true) {
-      final tasks = await _taskService.getTasks();
-      setState(() {
-        _tasks = tasks;
-        _updateTotalValue();
-      });
+      await _loadTasks();
     }
   }
 
   Future<void> _deleteTask(int id) async {
     await _taskService.deleteTask(id);
-    final tasks = await _taskService.getTasks();
-    setState(() {
-      _tasks = tasks;
-      _updateTotalValue();
-    });
+    await _loadTasks();
   }
 
   Future<void> _toggleCompleted(Task task) async {
     await _taskService.updateTaskCompletion(task.id!, !task.completed);
-    final tasks = await _taskService.getTasks();
-    setState(() {
-      _tasks = tasks;
-      _updateTotalValue();
-    });
+    await _loadTasks();
   }
 
   Widget _buildSwipeBackground({required bool isStart}) {
@@ -131,12 +125,52 @@ class _TaskListScreenState extends State<TaskListScreen> {
               ],
             ),
           ),
+
+          // Dica estilizada com ícone e botão fechar
+          if (_showTip)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.blueGrey[800],
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black45,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.swipe, color: Colors.white54, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Arraste para a direita para editar o produto e para a esquerda para apagar da lista.',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70),
+                    onPressed: () {
+                      setState(() {
+                        _showTip = false;
+                      });
+                    },
+                    tooltip: 'Fechar dica',
+                  ),
+                ],
+              ),
+            ),
+
           Expanded(
             child:
                 _tasks.isEmpty
                     ? const Center(
                       child: Text(
-                        'Não existem produto na lista no momento',
+                        'Não existem produtos na lista no momento',
                         style: TextStyle(color: Colors.white54, fontSize: 16),
                       ),
                     )

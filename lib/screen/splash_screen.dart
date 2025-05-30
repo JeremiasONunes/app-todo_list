@@ -87,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen>
             const Padding(
               padding: EdgeInsets.only(bottom: 16.0),
               child: Text(
-                'Versão 2.1.0 - beta\nmade by Jeremias O Nunes',
+                'Versão 2.2.1 - beta\nmade by Jeremias O Nunes',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),

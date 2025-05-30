@@ -1,6 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
 import '../model/task.dart';
 import '../services/task_service.dart';
+
+// Formatter para formatação de moeda enquanto digita
+class MoneyInputFormatter extends TextInputFormatter {
+  final NumberFormat _formatter = NumberFormat.currency(
+    locale: 'pt_BR',
+    symbol: '',
+    decimalDigits: 2,
+  );
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    // Remove tudo que não é dígito
+    String numericString = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (numericString.isEmpty) {
+      return const TextEditingValue(
+        text: '',
+        selection: TextSelection.collapsed(offset: 0),
+      );
+    }
+
+    // Converte para número decimal com duas casas decimais
+    double value = double.parse(numericString) / 100;
+
+    // Formata o valor para moeda sem símbolo (ex: 12,34)
+    String newText = _formatter.format(value).trim();
+
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
+}
 
 class TaskFormScreen extends StatefulWidget {
   final Task? task;
@@ -26,7 +65,14 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     if (widget.task != null) {
       _titleController.text = widget.task!.title;
       _descriptionController.text = widget.task!.description;
-      _valueController.text = widget.task!.value.toString();
+
+      // Formata o valor inicial para exibir no formato monetário
+      _valueController.text = NumberFormat.currency(
+        locale: 'pt_BR',
+        symbol: '',
+        decimalDigits: 2,
+      ).format(widget.task!.value);
+
       _quantityController.text = widget.task!.quantity.toString();
     }
   }
@@ -44,7 +90,17 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     if (_formKey.currentState!.validate()) {
       final title = _titleController.text.trim();
       final description = _descriptionController.text.trim();
-      final value = double.tryParse(_valueController.text.trim()) ?? 0.0;
+
+      // Remove tudo que não for dígito para transformar no valor numérico real
+      String numericString = _valueController.text.replaceAll(
+        RegExp(r'[^0-9]'),
+        '',
+      );
+      final value =
+          numericString.isEmpty
+              ? 0.0
+              : double.parse(numericString) / 100; // duas casas decimais
+
       final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
 
       if (widget.task == null) {
@@ -158,6 +214,10 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        MoneyInputFormatter(),
+                      ],
                       style: const TextStyle(color: Colors.white),
                       decoration: _buildInputDecoration('Preço (opcional)'),
                     ),
